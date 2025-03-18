@@ -5,13 +5,25 @@
 ;http://www.gimptalk.com/forum/broken-scripts-t33501.html
 ;Resubmission to Gimp Plugin Registry & GimpTalk by Gargy
 ;Modified for Gimp 2.8 by Roland Clobus
+;Modified for Gimp 2.99.8+ by GlitchyPie
+;	2023-08-18 Additional updates to fix breaking changes since aprox Gimp 2.99.16
 ;------------
 ;Description...: Iconify plug-in converts a single layer of a single image into a multi-layered image ready to be saved as a Windows icon.
 ;The new image will contain all standard sizes (16x16, 32x32, 48x48) at all standard bit depths (16 colors, 256 colors, 32-bit RGBA), with transparency support.
 ;The new image will also contain a big version (256x256 32-bit RGBA)
 ;===========================
 ;
-; Note: This script has been modified accordingly with the changes stated here: http://www.aqua-soft.org/forum/topic/40999-iconify-plug-in-for-the-gimp/
+; Note: This script was modified accordingly with the changes stated here: http://www.aqua-soft.org/forum/topic/40999-iconify-plug-in-for-the-gimp/
+; ( https://web.archive.org/web/20230818185151/https://www.aqua-soft.org/forum/topic/40999-iconify-plug-in-for-the-gimp/ )
+; 
+; 
+; Changes by GlitchyPie only involved replacing old functions and function names to 2.99.8+ equivalents
+;
+; 2023-08-18: GlitchyPie :
+;           : Changed deprecated -get-filename and -set-filename to -get-file and -set-file
+;           : Added .xcf to new-name as recent implementation now enforces previously poorly document requirement
+;             See: https://gitlab.gnome.org/GNOME/gimp/-/issues/9657
+;           : Furthere updates warrented as there are further deprecated transfrom functions being used
 ;
 ; It converts an image into a Windows/Macintosh icon
 (define (script-fu-iconify img drawable)
@@ -41,31 +53,32 @@
 (set! new-name
 (append
 (butlast
-(strbreakup (car (gimp-image-get-filename img)) ".")
+(strbreakup (car (gimp-image-get-file img)) ".")
 )
-'(".ico")
+'(".ico.xcf")
 )
 )
 (set! new-name (eval (cons string-append new-name)))
-(gimp-image-set-filename new-img new-name)
+(gimp-image-set-file new-img new-name)
 
 ; Create a new layer
 (set! work-layer (car (gimp-layer-new-from-drawable drawable new-img)))
 
 ; Give it a name
-(gimp-layer-set-name work-layer "Work layer")
+(gimp-item-set-name work-layer "Work layer")
 
 ; Add the new layer to the new image
-(gimp-image-add-layer new-img work-layer 0)
+(gimp-image-insert-layer new-img work-layer 0 -1)
 
 ; Autocrop the layer
-(plug-in-autocrop-layer 1 new-img work-layer)
+;;;;;;;;(plug-in-autocrop-layer 1 new-img work-layer)
 
 ; Now, resize the layer so that it is square,
 ; by making the shorter dimension the same as
 ; the longer one. The layer content is centered.
-(set! layer-x (car (gimp-drawable-width work-layer)))
-(set! layer-y (car (gimp-drawable-height work-layer)))
+(set! layer-x (car (gimp-drawable-get-width work-layer)))
+(set! layer-y (car (gimp-drawable-get-height work-layer)))
+
 (set! max-dim (max layer-x layer-y))
 (gimp-layer-resize work-layer max-dim max-dim (/ (- max-dim layer-x) 2) (/ (- max-dim layer-y) 2))
 
@@ -78,17 +91,17 @@
 (define (resize-to-dim dim)
 
 (set! temp-layer (car (gimp-layer-copy work-layer 0)))
-(gimp-layer-set-name temp-layer "Work layer")
-(gimp-image-add-layer new-img temp-layer 0)
-(gimp-drawable-transform-scale temp-layer 0 0 dim dim 0 2 1 3 0)
+(gimp-item-set-name temp-layer "Work layer")
+(gimp-image-insert-layer new-img temp-layer 0 -1)
+(gimp-item-transform-scale temp-layer 0 0 dim dim 0 2 1 3 0)
 )
 
 ; We don't do the biggest size at this moment
-(mapcar resize-to-dim '(16 32 48 64 72 96 128))
+(map resize-to-dim '(16 32 48 64 72 96 128))
 
 ; Create the big layer, but do not add it yet
 (set! big-layer (car (gimp-layer-copy work-layer 0)))
-(gimp-layer-set-name big-layer "Big")
+(gimp-item-set-name big-layer "Big")
 
 ; We can now get rid of the working layer
 (gimp-image-remove-layer new-img work-layer)
@@ -117,7 +130,7 @@ temp-img)
 (aref layers-array (- layernum 1)) new-img)
 )
 )
-(gimp-image-add-layer new-img layer 0)
+(gimp-image-insert-layer new-img layer 0 -1)
 (set! layernum (- layernum 1))
 )
 (gimp-image-delete temp-img)
@@ -133,8 +146,8 @@ temp-img)
 ;(plop-image four-bit)
 
 ; We add the big version
-(gimp-image-add-layer new-img big-layer 0)
-(gimp-drawable-transform-scale big-layer 0 0 256 256 0 2 1 3 0)
+(gimp-image-insert-layer new-img big-layer 0 -1)
+(gimp-item-transform-scale big-layer 0 0 256 256 0 2 1 3 0)
 
 ; We display the new image
 (gimp-display-new new-img)
@@ -147,11 +160,13 @@ temp-img)
 ; it could be extended to work with palettized images, thus only creating
 ; layers for depths up to the current image depth
 (script-fu-register "script-fu-iconify"
-"<Image>/Script-Fu/Utils/Iconify"
+"Iconify"
 "Use the current layer of the current image to create a multi-sized, multi-depth Windows icon file"
-"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+"
-"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+"
+"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+ and then Fixed By GlitchyPies for gimp 2.99.8+"
+"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+ and then Fixed By GlitchyPies for gimp 2.99.8+"
 "20051021"
 "RGB*"
 SF-IMAGE "Image to iconify" 0
 SF-DRAWABLE "Layer to iconify" 0)
+
+(script-fu-menu-register "script-fu-iconify" "<Image>/Script-Fu/Utils/Iconify")
