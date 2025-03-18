@@ -25,6 +25,9 @@
 ;             See: https://gitlab.gnome.org/GNOME/gimp/-/issues/9657
 ;           : Furthere updates warrented as there are further deprecated transfrom functions being used
 ;
+; 2025-03-18: Ace Of Snakes :
+;           : try to run it under GIMP 3.0
+;
 ; It converts an image into a Windows/Macintosh icon
 (define (script-fu-iconify img drawable)
 ; Create a new image. It's also easy to add
@@ -162,8 +165,8 @@ temp-img)
 (script-fu-register "script-fu-iconify"
 "Iconify"
 "Use the current layer of the current image to create a multi-sized, multi-depth Windows icon file"
-"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+ and then Fixed By GlitchyPies for gimp 2.99.8+"
-"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+ and then Fixed By GlitchyPies for gimp 2.99.8+"
+"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+ and then Fixed By GlitchyPies for gimp 2.99.8+ Ace Of Snakes try to fix for gimp 3.0.0"
+"Giuseppe Bilotta, Fixed By Roland Clobus for gimp 2.8+ and then Fixed By GlitchyPies for gimp 2.99.8+ Ace Of Snakes try to fix for gimp 3.0.0"
 "20051021"
 "RGB*"
 SF-IMAGE "Image to iconify" 0
