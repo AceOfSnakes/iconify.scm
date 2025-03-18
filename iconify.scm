@@ -172,4 +172,4 @@ temp-img)
 SF-IMAGE "Image to iconify" 0
 SF-DRAWABLE "Layer to iconify" 0)
 
-(script-fu-menu-register "script-fu-iconify" "<Image>/Script-Fu/Utils/Iconify")
+(script-fu-menu-register "script-fu-iconify" "<Image>/Script-Fu/Utils")
